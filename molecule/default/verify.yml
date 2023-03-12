@@ -1,0 +1,113 @@
+---
+
+- name: Verify
+  hosts:
+    # - almalinux8
+    - almalinux9
+    # - fedora36
+    # - fedora37
+    # - debian10
+    # - debian11
+    # - ubuntu2004
+    # - ubuntu2204
+  tasks:
+
+    - name: Ensure python3-apt is installed on Apt systems for ansible.builtin.package_facts
+      ansible.builtin.apt:
+        name: python3-apt
+      become: true
+      when: ansible_facts['pkg_mgr'] == 'apt'
+
+    - name: Gather facts about packages
+      ansible.builtin.package_facts:
+        manager: auto
+
+    - name: Assert python3-cryptography is installed
+      ansible.builtin.assert:
+        that: "'python3-cryptography' in ansible_facts['packages']"
+        success_msg: python3-cryptography is installed
+        fail_msg: dpython3-cryptography is not installed
+
+    - name: Include default vars
+      ansible.builtin.include_vars:
+        dir: '{{ lookup("env", "MOLECULE_PROJECT_DIRECTORY") }}/defaults/'
+        extensions:
+          - 'yml'
+
+    - name: Stat the desired key directory
+      ansible.builtin.stat:
+        path: '{{ key_file_remote_path | ansible.builtin.dirname }}'
+      register: key_directory
+      become: true
+
+    - name: Assert that the key directory exists
+      ansible.builtin.assert:
+        that: key_directory.stat.exists == true
+        success_msg: Key directory exists
+        fail_msg: Key directory does not exist
+
+    - name: Stat the desired cert directory
+      ansible.builtin.stat:
+        path: '{{ cert_file_remote_path | ansible.builtin.dirname }}'
+      register: cert_directory
+      become: true
+
+    - name: Assert that the cert directory exists
+      ansible.builtin.assert:
+        that: cert_directory.stat.exists == true
+        success_msg: Cert directory exists
+        fail_msg: Cert directory does not exist
+
+    - name: Stat the desired key file
+      ansible.builtin.stat:
+        path: '{{ key_file_remote_path }}'
+      register: key_file
+
+    - name: Assert that the key file exists
+      ansible.builtin.assert:
+        that: key_file.stat.exists == true
+        success_msg: Key file exists
+        fail_msg: Key file does not exist
+
+    - name: Stat the desired cert file on the local system
+      delegate_to: localhost
+      ansible.builtin.stat:
+        path: '{{ cert_file_local_path }}'
+      register: local_cert_file
+
+    - name: Stat the desired cert file on the remote system
+      ansible.builtin.stat:
+        path: '{{ cert_file_remote_path }}'
+      register: remote_cert_file
+
+    - name: Stat the desired CSR
+      delegate_to: localhost
+      ansible.builtin.stat:
+        path: '{{ csr_file_local_path }}'
+      register: csr_file
+
+    - name: If cert files do not exist, assert that a CSR exists
+      ansible.builtin.assert:
+        that: csr_file.stat.exists == true
+        success_msg: CSR file exists
+        fail_msg: CSR file does not exist
+      when: local_cert_file.stat.exists == false and
+            remote_cert_file.stat.exists == false
+
+    - name: Assert that the cert file exists locally
+      ansible.builtin.assert:
+        that: local_cert_file.stat.exists == true
+        success_msg: Cert file exists locally
+        fail_msg: Cert file does not exist locally
+
+    - name: Assert that the cert file exists remotely
+      ansible.builtin.assert:
+        that: remote_cert_file.stat.exists == true
+        success_msg: Cert file exists remotely
+        fail_msg: Cert file does not exist remotely
+
+    - name: Assert that the local and remote cert files match
+      ansible.builtin.assert:
+        that: local_cert_file.stat.checksum == remote_cert_file.stat.checksum
+        success_msg: Local and remote cert files match
+        fail_msg: local and remote cert files do not match

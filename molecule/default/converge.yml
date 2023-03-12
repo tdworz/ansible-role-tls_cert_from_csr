@@ -1,0 +1,8 @@
+---
+
+- name: Converge
+  hosts: all
+  tasks:
+    - name: Include tdworz.tls_cert_from_csr
+      include_role:
+        name: tdworz.tls_cert_from_csr

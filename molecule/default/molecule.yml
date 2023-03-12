@@ -1,0 +1,47 @@
+---
+
+dependency:
+  name: galaxy
+
+driver:
+  name: docker
+
+platforms:
+
+#  - name: almalinux8
+#    image: dokken/almalinux-8
+#    pre_build_image: true
+
+  - name: almalinux9
+    image: dokken/almalinux-9
+    pre_build_image: true
+
+#  - name: fedora36
+#    image: dokken/fedora-36
+#    pre_build_image: true
+
+#  - name: fedora37
+#    image: dokken/fedora-37
+#    pre_build_image: true
+
+#  - name: debian10
+#    image: dokken/debian-10
+#    pre_build_image: true
+
+#  - name: debian11
+#    image: dokken/debian-11
+#    pre_build_image: true
+
+#  - name: ubuntu2004
+#    image: dokken/ubuntu-20.04
+#    pre_build_image: true
+
+#  - name: ubuntu2204
+#    image: dokken/ubuntu-22.04
+#    pre_build_image: true
+
+provisioner:
+  name: ansible
+
+verifier:
+  name: ansible
