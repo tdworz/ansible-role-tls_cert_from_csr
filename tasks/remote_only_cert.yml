@@ -1,0 +1,5 @@
+---
+
+- name: Exit Ansible to allow the user an opportunity to get a signed cert
+  ansible.builtin.fail:
+    msg: A file exists remotely at {{ cert_file_remote_path }} (as defined by cert_file_remote_path), but not locally at {{ cert_file_local_path }} (as defined by cert_file_local_path). This role assumes a public certificate will exist locally first.

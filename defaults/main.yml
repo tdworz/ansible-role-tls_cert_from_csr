@@ -1,0 +1,15 @@
+---
+
+# Domain settings
+common_name: example.com
+subject_alternative_names:
+  - DNS:example.com
+  - DNS:*.example.com
+
+# Remote file paths
+key_file_remote_path: /srv/tls/private/server.key
+cert_file_remote_path: /srv/tls/certs/server.crt
+
+# Local file paths
+csr_file_local_path: /tmp/server.csr
+cert_file_local_path: files/server.crt

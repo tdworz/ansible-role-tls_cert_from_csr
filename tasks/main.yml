@@ -1,0 +1,66 @@
+---
+
+- name: Limit this role to being run on one host
+  ansible.builtin.assert:
+    that: '{{ groups.all | count }} == 1'
+    success_msg: This role is being run on only one host
+    fail_msg: This role may only be run on one host at at a time
+
+- name: Install packages required for community.crypto
+  ansible.builtin.package:
+    name:
+      - python3-cryptography
+    state: present
+  become: true
+
+- name: Create a keys directory
+  ansible.builtin.file:
+    path: '{{ key_file_remote_path | ansible.builtin.dirname }}'
+    owner: root
+    group: root
+    mode: '0600'
+    state: directory
+  become: true
+
+- name: Create a certs directory
+  ansible.builtin.file:
+    path: '{{ cert_file_remote_path | ansible.builtin.dirname }}'
+    owner: root
+    group: root
+    state: directory
+  become: true
+
+- name: Generate an OpenSSL private key
+  community.crypto.openssl_privatekey:
+    path: '{{ key_file_remote_path }}'
+    mode: '0600'
+    backup: true
+  become: true
+
+- name: Stat the desired cert file on the local system
+  delegate_to: localhost
+  ansible.builtin.stat:
+    path: '{{ cert_file_local_path }}'
+  register: local_cert_file
+
+- name: Stat the desired cert file on the remote system
+  ansible.builtin.stat:
+    path: '{{ cert_file_remote_path }}'
+  register: remote_cert_file
+  become: true
+
+- name: If there is no cert file, generate a CSR, save it, and exit
+  ansible.builtin.include_tasks: generate_csr.yml
+  when: local_cert_file.stat.exists == false and
+        remote_cert_file.stat.exists == false
+
+- name: If there is only a remote cert file, warn the user and exit
+  ansible.builtin.include_tasks: remote_only_cert.yml
+  when: local_cert_file.stat.exists == false and
+        remote_cert_file.stat.exists == true
+
+- name: Copy the local cert file to the remote system
+  ansible.builtin.copy:
+    src: '{{ cert_file_local_path }}'
+    dest: '{{ cert_file_remote_path }}'
+  become: true

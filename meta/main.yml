@@ -1,0 +1,31 @@
+galaxy_info:
+  namespace: tdworz
+  role_name: tls_cert_from_csr
+  description: Install TLS certificate after first generating a private key and CSR.
+  author: Tom Dworzanski (tdworz)
+  license: GPL-3.0-or-later
+  issue_tracker_url: https://github.com/tdworz/ansible-role-tls_cert_from_csr/issues
+  platforms:
+    - name: EL
+      versions:
+        - 8
+        - 9
+    - name: Fedora
+      versions:
+        - 36
+        - 37
+    - name: Debian
+      versions:
+        - buster
+        - bullseye
+    - name: Ubuntu
+      versions:
+        - focal
+        - jammy
+  galaxy_tags:
+    - tls
+    - ssl
+    - csr
+    - openssl
+
+dependencies: []

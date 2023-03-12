@@ -1,0 +1,19 @@
+---
+
+- name: Generate an OpenSSL certificate signing request
+  community.crypto.openssl_csr_pipe:
+    privatekey_path: '{{ key_file_remote_path }}'
+    common_name: '{{ common_name }}'
+    subject_alt_name: '{{ subject_alternative_names }}'
+  register: certificate_signing_request
+  become: true
+
+- name: Save the certificate signing request locally
+  delegate_to: localhost
+  ansible.builtin.copy:
+    dest: '{{ csr_file_local_path }}'
+    content: "{{ certificate_signing_request.csr }}"
+
+- name: Exit Ansible to allow the user an opportunity to get a signed cert
+  ansible.builtin.fail:
+    msg: Please use the certificate signing request saved at {{ csr_file_local_path }} (as defined by csr_file_local_path) to request a signed certificate. Please then place the signed certificate at {{ cert_file_local_path }} (as defined by cert_file_local_path) and run this role again.
